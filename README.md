@@ -1,7 +1,7 @@
 # CloudAndBigData
 
-Part 1: Cloud
-  - https://github.com/teabetab/CoursCloudN7
+**Part 1: Cloud**
+  - *[Cloud](https://github.com/teabetab/CoursCloudN7)*
 
-Part 2: Big Data
-  - https://sd-160040.dedibox.fr/hagimont
+**Part 2: Big Data**
+  - *[Big Data](https://sd-160040.dedibox.fr/hagimont)*
