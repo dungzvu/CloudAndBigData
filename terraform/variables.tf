@@ -3,10 +3,9 @@ variable "libvirt_disk_path" {
   default     = "/opt/kvm/pool1"
 }
 
-variable "ubuntu_18_img_url" {
-  description = "ubuntu 18.04 image"
+variable "ubuntu_img_url" {
+  description = "ubuntu 22.04 image"
   default     = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img"
-#   default     = "http://cloud-images.ubuntu.com/releases/bionic/release-20191008/ubuntu-18.04-server-cloudimg-amd64.img"
 }
 
 variable "vm_hostname" {
@@ -22,4 +21,10 @@ variable "ssh_username" {
 variable "ssh_private_key" {
   description = "the private key to use"
   default     = "~/.ssh/id_rsa"
+}
+
+variable "instance_count" {
+  description = "Number of instances to create"
+  type        = number
+  default     = 1
 }

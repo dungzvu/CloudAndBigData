@@ -1,3 +1,3 @@
-output "ip" {
-  value = libvirt_domain.domain-ubuntu.network_interface[0].addresses[0]
+output "ips" {
+  value = tolist([for instance in libvirt_domain.domain-bigdata-vm : instance.network_interface[0].addresses[0]])
 }

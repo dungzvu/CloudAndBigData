@@ -8,10 +8,11 @@ resource "libvirt_pool" "ubuntu" {
   path = var.libvirt_disk_path
 }
 
-resource "libvirt_volume" "ubuntu-qcow2" {
-  name = "ubuntu-qcow2"
-  pool = libvirt_pool.ubuntu.name
-  source = var.ubuntu_18_img_url
+resource "libvirt_volume" "bigdata-vm-qcow2" {
+  count  = var.instance_count
+  name   = "bigdata-vm-qcow2-${count.index}"
+  pool   = libvirt_pool.ubuntu.name
+  source = var.ubuntu_img_url
   format = "qcow2"
 }
 
@@ -24,15 +25,18 @@ data "template_file" "network_config" {
 }
 
 resource "libvirt_cloudinit_disk" "commoninit" {
-  name           = "commoninit.iso"
+  # count = var.instance_count
+  # name  = "commoninit-${count.index}.iso"
+  name = "commoninit.iso"
+  pool  = libvirt_pool.ubuntu.name
+
   user_data      = data.template_file.user_data.rendered
-  network_config = data.template_file.network_config.rendered
-  pool           = libvirt_pool.ubuntu.name
 }
 
-resource "libvirt_domain" "domain-ubuntu" {
-  name   = var.vm_hostname
-  memory = "512"
+resource "libvirt_domain" "domain-bigdata-vm" {
+  count  = var.instance_count
+  name   = "${var.vm_hostname}-${count.index}"
+  memory = "1024"
   vcpu   = 1
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
@@ -40,7 +44,7 @@ resource "libvirt_domain" "domain-ubuntu" {
   network_interface {
     network_name   = "default"
     wait_for_lease = true
-    hostname       = var.vm_hostname
+    hostname       = "${var.vm_hostname}-${count.index}"
   }
 
   console {
@@ -56,7 +60,7 @@ resource "libvirt_domain" "domain-ubuntu" {
   }
 
   disk {
-    volume_id = libvirt_volume.ubuntu-qcow2.id
+    volume_id = libvirt_volume.bigdata-vm-qcow2[count.index].id
   }
 
   graphics {
@@ -64,31 +68,4 @@ resource "libvirt_domain" "domain-ubuntu" {
     listen_type = "address"
     autoport    = true
   }
-
-  provisioner "remote-exec" {
-    inline = [
-      "echo 'Hello World'"
-    ]
-
-    connection {
-      type                = "ssh"
-      user                = var.ssh_username
-      host                = libvirt_domain.domain-ubuntu.network_interface[0].addresses[0]
-      private_key         = file(var.ssh_private_key)
-    #   bastion_host        = "ams-kvm-remote-host"
-    #   bastion_user        = "deploys"
-    #   bastion_private_key = file("~/.ssh/deploys.pem")
-      timeout             = "2m"
-    }
-  }
-
-#   provisioner "local-exec" {
-#     command = <<EOT
-#       echo "[nginx]" > nginx.ini
-#       echo "${libvirt_domain.domain-ubuntu.network_interface[0].addresses[0]}" >> nginx.ini
-#       echo "[nginx:vars]" >> nginx.ini
-#       echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -q ams-kvm-remote-host\"'" >> nginx.ini
-#       ansible-playbook -u ${var.ssh_username} --private-key ${var.ssh_private_key} -i nginx.ini ansible/playbook.yml
-#       EOT
-#   }
 }
