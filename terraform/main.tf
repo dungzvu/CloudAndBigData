@@ -20,10 +20,6 @@ data "template_file" "user_data" {
   template = file("${path.module}/config/cloud_init.yml")
 }
 
-data "template_file" "network_config" {
-  template = file("${path.module}/config/network_config.yml")
-}
-
 resource "libvirt_cloudinit_disk" "commoninit" {
   # count = var.instance_count
   # name  = "commoninit-${count.index}.iso"
@@ -36,7 +32,7 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 resource "libvirt_domain" "domain-bigdata-vm" {
   count  = var.instance_count
   name   = "${var.vm_hostname}-${count.index}"
-  memory = "1024"
+  memory = "2048"
   vcpu   = 1
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
