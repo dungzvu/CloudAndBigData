@@ -1,13 +1,16 @@
 #!/bin/bash
 
 N_SLAVES=$1
+JAR_FILE=$2
 N_INSTANCES=$((N_SLAVES + 1))
+
+VM_USERNAME=ubuntu
 
 HOME=$(pwd)
 ANSIBLE_DIR=$HOME/ansible
 TERRAFORM_DIR=$HOME/terraform
 
-# Run terraform commands in a subshell
+# == 1. Launch the VMs using Terraform
 (
     cd terraform || exit
     # Check if the .terraform directory exists
@@ -40,3 +43,22 @@ TERRAFORM_DIR=$HOME/terraform
         done
     } > "${ANSIBLE_DIR}/inventory/servers.ini"
 )
+echo "Finished creating VMs, master node: ${MASTER_IP}, worker nodes: ${WORKER_IPS}"
+
+# == 2. Install Hadoop/Spark clusters using Ansible
+(
+    cd ansible || exit
+
+    # Run the playbook
+    echo "Installing Hadoop/Spark clusters..."
+    ansible-playbook -i inventory/servers.ini --private-key $HOME/secrets/id_ed25519 playbook.yml
+)
+
+# # == 3. Run the Spark job
+# (
+#     cd ansible || exit
+
+#     # Run the playbook
+#     echo "Running Spark job..."
+#     ansible-playbook -i inventory/servers.ini --private-key $HOME/secrets/id_ed25519 spark-job.yml
+# )

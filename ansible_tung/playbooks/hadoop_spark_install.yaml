@@ -1,0 +1,58 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Hadoop and Spark
+      block:
+        - name: Make install directory
+          file:
+            path: /home/ubuntu/install
+            state: directory
+            mode: '0755'
+
+        - name: Check if Hadoop tarball exists
+          stat:
+            path: /home/ubuntu/install/hadoop.tar.gz
+          register: hadoop_tarball
+
+        - name: Download Hadoop
+          get_url:
+            url: https://sd-160040.dedibox.fr/hagimont/software/hadoop-2.7.1.tar.gz
+            dest: /home/ubuntu/install/hadoop.tar.gz
+          when: not hadoop_tarball.stat.exists
+
+        - name: Check if Hadoop directory exists
+          stat:
+            path: /home/ubuntu/install/hadoop-3.3.0
+          register: hadoop_dir
+
+        - name: Extract Hadoop
+          unarchive:
+            src: /home/ubuntu/install/hadoop.tar.gz
+            dest: /home/ubuntu/install
+            remote_src: yes
+          when: not hadoop_dir.stat.exists
+
+        - name: Check if Spark tarball exists
+          stat:
+            path: /home/ubuntu/install/spark.tgz
+          register: spark_tarball
+
+        - name: Download Spark
+          get_url:
+            url: https://sd-160040.dedibox.fr/hagimont/software/spark-2.4.3-bin-hadoop2.7.tgz
+            dest: /home/ubuntu/install/spark.tgz
+          when: not spark_tarball.stat.exists
+
+        - name: Check if Spark directory exists
+          stat:
+            path: /home/ubuntu/install/spark-3.0.1-bin-hadoop3.2
+          register: spark_dir
+
+        - name: Extract Spark
+          unarchive:
+            src: /home/ubuntu/install/spark.tgz
+            dest: /home/ubuntu/install/
+            remote_src: yes
+          when: not spark_dir.stat.exists
+

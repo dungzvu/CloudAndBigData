@@ -1,0 +1,3 @@
+---
+- name: Start Spark
+  command: /home/ubuntu/install/start.sh

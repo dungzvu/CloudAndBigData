@@ -1,0 +1,12 @@
+---
+- name: Change ownership of /home/ubuntu/install to ubuntu:ubuntu on all servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Change ownership of /home/ubuntu/install directory
+      file:
+        path: /home/ubuntu/install
+        owner: ubuntu
+        group: ubuntu
+        recurse: yes
+

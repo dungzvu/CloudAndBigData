@@ -1,0 +1,88 @@
+---
+# Config hadoop cluster
+- name: Replace JAVA_HOME in hdfs-site.xml
+  lineinfile:
+    path: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/hadoop-env.sh
+    regexp: '^export JAVA_HOME=.*'
+    line: 'export JAVA_HOME=/home/ubuntu/install/jdk1.8.0_202'
+    state: present
+
+# Update core-site.xml with temporary directory and master node name
+- name: Configure core-site.xml with master node name
+  copy:
+    dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/core-site.xml
+    content: |
+      <configuration>
+        <property>
+          <name>hadoop.tmp.dir</name>
+          <value>/tmp/hadoop</value>
+          <description>A base for other temporary directories.</description>
+        </property>
+        <property>
+          <name>fs.defaultFS</name>
+          <value>hdfs://{{ groups['master'][0] }}:54310</value>
+        </property>
+      </configuration>
+
+# Update hdfs-site.xml with replication factor and block size
+- name: Configure hdfs-site.xml
+  copy:
+    dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/hdfs-site.xml
+    content: |
+      <configuration>
+        <property>
+          <name>dfs.replication</name>
+          <value>1</value>
+        </property>
+        <property>
+          <name>dfs.block.size</name>
+          <value>67108864</value>
+        </property>
+      </configuration>
+
+# Update slaves file with the list of slave nodes
+- name: Update slaves file with slave nodes
+  lineinfile:
+    path: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/slaves
+    line: "{{ item }}"
+    state: present
+  loop: "{{ groups['slaves'] }}"
+  # copy:
+  #   dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/slaves
+  #   content: |
+  #     {% for host in groups['workers'] %}
+  #       {{ host }}
+  #     {% endfor %}
+
+# == Config spark cluster
+# Copy slaves.template to slaves
+- name: Copy slaves.template to slaves
+  copy:
+    src: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves.template
+    dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves
+
+# Add slave nodes to the slaves file
+- name: Add slave nodes to slaves file
+  lineinfile:
+    path: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves
+    line: "{{ item }}"
+    state: present
+  loop: "{{ groups['slaves'] }}"
+
+# Copy spark-env.sh.template to spark-env.sh
+- name: Copy spark-env.sh.template to spark-env.sh
+  copy:
+    src: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh.template
+    dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh
+
+# Add SPARK_MASTER_HOST and JAVA_HOME to spark-env.sh
+- name: Add SPARK_MASTER_HOST and JAVA_HOME to spark-env.sh
+  lineinfile:
+    path: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh
+    line: "{{ item }}"
+    state: present
+  loop:
+    - "export SPARK_MASTER_HOST=master"
+    - "export JAVA_HOME=/home/ubuntu/install/jdk1.8.0_202"  
+  notify:
+    - Restart Spark

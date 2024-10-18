@@ -1,0 +1,50 @@
+---
+- name: Configure Spark on all nodes
+  hosts: all
+  become: yes
+  tasks:
+    # Copy slaves.template to slaves
+    - name: Copy slaves.template to slaves
+      copy:
+        src: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves.template
+        dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves
+
+    # Add slave nodes to the slaves file
+    - name: Add slave nodes to slaves file
+      lineinfile:
+        path: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves
+        line: "{{ item }}"
+        state: present
+      loop: "{{ groups['slaves'] }}"
+
+    # Copy spark-env.sh.template to spark-env.sh
+    - name: Copy spark-env.sh.template to spark-env.sh
+      copy:
+        src: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh.template
+        dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh
+      notify:
+        - Add SPARK_MASTER_HOST and JAVA_HOME
+
+    # Add SPARK_MASTER_HOST and JAVA_HOME to spark-env.sh
+    - name: Add SPARK_MASTER_HOST and JAVA_HOME to spark-env.sh
+      lineinfile:
+        path: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh
+        line: "{{ item }}"
+        state: present
+      loop:
+        - "export SPARK_MASTER_HOST=master1"
+        - "export JAVA_HOME=/home/ubuntu/install/jdk1.8.0_202"  
+      notify:
+        - Restart Spark
+
+  handlers:
+    # Add SPARK_MASTER_HOST and JAVA_HOME to spark-env.sh (if you need a handler for it)
+    - name: Add SPARK_MASTER_HOST and JAVA_HOME
+      debug:
+        msg: "Adding SPARK_MASTER_HOST and JAVA_HOME"
+        
+    # Restart Spark
+    - name: Restart Spark
+      shell: "/home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/sbin/stop-all.sh && /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/sbin/start-all.sh"
+      when: inventory_hostname == groups['master'][0]
+

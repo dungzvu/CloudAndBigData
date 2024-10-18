@@ -1,0 +1,37 @@
+---
+- name: Ensure the remote directory exists
+  file:
+    path: /home/ubuntu/install/
+    state: directory
+    mode: '0755'
+
+- name: Copy files to remote directory
+  copy:
+    src: "{{ item }}"
+    dest: /home/ubuntu/install/
+  with_fileglob:
+    - "files/*"
+
+- name: Unzip all files
+  unarchive:
+    src: /home/ubuntu/install/{{ item }}
+    dest: /home/ubuntu/install/
+    remote_src: yes
+  with_fileglob:
+    - "*.tar.gz"
+    - "*.tgz"
+
+- name: Append environment variables to .bashrc
+  lineinfile:
+    path: /home/{{ ansible_user }}/.bashrc
+    line: |
+      export JAVA_HOME=$HOME/install/jdk1.8.0_202
+      export PATH=$JAVA_HOME/bin:$PATH
+
+      export HADOOP_HOME=$HOME/install/hadoop-2.7.1
+      export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+
+      export SPARK_HOME=$HOME/install/spark-2.4.3-bin-hadoop2.7
+      export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+    create: yes
+    insertafter: EOF

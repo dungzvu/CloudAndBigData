@@ -1,0 +1,55 @@
+---
+- name: Configure Hadoop on all nodes
+  hosts: all
+  become: yes
+  tasks:
+    # Update JAVA_HOME in hadoop-env.sh
+
+    - name: Replace JAVA_HOME in hdfs-site.xml
+      lineinfile:
+        path: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/hadoop-env.sh
+        regexp: '^export JAVA_HOME=.*'
+        line: 'export JAVA_HOME=/home/ubuntu/install/jdk1.8.0_202'
+        state: present
+
+    # Update core-site.xml with temporary directory and master node name
+    - name: Configure core-site.xml with master node name
+      copy:
+        dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/core-site.xml
+        content: |
+          <configuration>
+            <property>
+              <name>hadoop.tmp.dir</name>
+              <value>/tmp/hadoop</value>
+              <description>A base for other temporary directories.</description>
+            </property>
+            <property>
+              <name>fs.defaultFS</name>
+              <value>hdfs://{{ groups['master'][0] }}:54310</value>
+            </property>
+          </configuration>
+
+    # Update hdfs-site.xml with replication factor and block size
+    - name: Configure hdfs-site.xml
+      copy:
+        dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/hdfs-site.xml
+        content: |
+          <configuration>
+            <property>
+              <name>dfs.replication</name>
+              <value>1</value>
+            </property>
+            <property>
+              <name>dfs.block.size</name>
+              <value>67108864</value>
+            </property>
+          </configuration>
+
+    # Update slaves file with the list of slave nodes
+    - name: Update slaves file with slave nodes
+      copy:
+        dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/slaves
+        content: |
+          slave1
+          slave2
+

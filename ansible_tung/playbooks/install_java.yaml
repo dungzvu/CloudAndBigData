@@ -1,0 +1,20 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Java
+      block:
+        - name: make dir install
+          file:
+            path: /home/ubuntu/install
+            state: directory
+            mode: '0755'
+        - name: Download Java
+          get_url:
+            url: https://sd-160040.dedibox.fr/hagimont/software/jdk-8u202-linux-x64.tar.gz
+            dest: /home/ubuntu/install/jdk-8u202-linux-x64.tar.gz
+
+        - name: Extract java
+          unarchive:
+            src: /home/ubuntu/install/jdk-8u202-linux-x64.tar.gz
+            dest: /home/ubuntu/install
+            remote_src: yes

@@ -14,6 +14,7 @@ resource "libvirt_volume" "bigdata-vm-qcow2" {
   pool   = libvirt_pool.ubuntu.name
   source = var.ubuntu_img_url
   format = "qcow2"
+  size   = 10240 
 }
 
 data "template_file" "user_data" {

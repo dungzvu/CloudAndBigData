@@ -1,0 +1,41 @@
+---
+- name: Update .bashrc with environment variables
+  hosts: all
+  become: true
+  tasks:
+    - name: Check if .bashrc contains JAVA_HOME, HADOOP_HOME, and SPARK_HOME
+      shell: |
+        grep -q 'export JAVA_HOME=$HOME/install/jdk1.8.0_202' ~/.bashrc && \
+        grep -q 'export HADOOP_HOME=$HOME/install/hadoop-2.7.1' ~/.bashrc && \
+        grep -q 'export SPARK_HOME=$HOME/spark-2.4.3-bin-hadoop2.7'
+      ignore_errors: true
+      register: check_bashrc
+
+    - name: Append environment variables to .bashrc if not present
+      block:
+        - name: Append environment variables to .bashrc
+          lineinfile:
+            path: /home/{{ ansible_user }}/.bashrc
+            line: |
+              export JAVA_HOME=$HOME/install/jdk1.8.0_202
+              export PATH=$JAVA_HOME/bin:$PATH
+
+              export HADOOP_HOME=$HOME/install/hadoop-2.7.1
+              export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+
+              export SPARK_HOME=$HOME/install/spark-2.4.3-bin-hadoop2.7
+              export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+            create: yes
+            insertafter: EOF
+          when: check_bashrc.rc != 0
+
+        - name: Inform the user that .bashrc has been updated
+          debug:
+            msg: ".bashrc updated with environment variables on {{ inventory_hostname }}."
+      when: check_bashrc.rc != 0
+
+    - name: Inform the user that .bashrc already contains the variables
+      debug:
+        msg: ".bashrc already contains environment variables on {{ inventory_hostname }}."
+      when: check_bashrc.rc == 0
+
