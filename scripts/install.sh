@@ -23,8 +23,8 @@ sudo systemctl restart libvirtd
 # == Ansible
 
 # == Prepare VM envs
-sudo adduser `id -un` libvirt
-sudo adduser `id -un` kvm
+sudo usermod -aG libvirt `id -un`
+sudo usermod -aG kvm `id -un`
 
 mkdir -p $DATA_DIR || true
 sudo chown -R $USER:libvirt $DATA_DIR

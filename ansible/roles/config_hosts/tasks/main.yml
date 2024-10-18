@@ -1,0 +1,8 @@
+---
+- name: Add hosts entries
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item.ansible_host }} {{ item.inventory_hostname }}"
+    state: present
+  with_items: "{{ groups['all'] | map('extract', hostvars) | list }}"
+  become: yes

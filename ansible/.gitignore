@@ -1,0 +1,6 @@
+*.retry
+/vars.*.yml
+/vars.yml
+!vars.example*.yml
+**/files/*.tar.gz
+**/files/*.tgz
