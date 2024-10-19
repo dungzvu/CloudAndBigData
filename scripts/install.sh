@@ -36,3 +36,9 @@ sudo chown -R $USER:libvirt $DATA_DIR
 
 # == Download img file
 wget -O $RESOURCE_DIR/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img
+
+# == Download java
+FILE_DIR=$HOME/ansible/roles/install_cluster/files
+wget -O $FILE_DIR/jdk-8u202-linux-x64.tar.gz https://sd-160040.dedibox.fr/hagimont/software/jdk-8u202-linux-x64.tar.gz
+wget -O $FILE_DIR/hadoop-2.7.1.tar.gz https://sd-160040.dedibox.fr/hagimont/software/hadoop-2.7.1.tar.gz
+wget -O $FILE_DIR/spark-2.4.3-bin-hadoop2.7.tgz https://sd-160040.dedibox.fr/hagimont/software/spark-2.4.3-bin-hadoop2.7.tgz
