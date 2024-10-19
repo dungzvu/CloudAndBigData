@@ -1,0 +1,4 @@
+---
+file_jar_path: /tmp/wordcount.jar
+file_data_path: /tmp/data.txt
+jar_class_name: WordCount

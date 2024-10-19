@@ -1,9 +1,15 @@
 #!/bin/bash
 
-N_SLAVES=$1
-JAR_FILE=$2
-N_INSTANCES=$((N_SLAVES + 1))
+# Record running time
+START_TIME=$SECONDS
 
+# Parameters
+N_SLAVES=$1
+FILE_JAR_PATH=$(realpath $2)
+FILE_DATA_PATH=$(realpath $3)
+JOB_CLASS_NAME=$4
+
+N_INSTANCES=$((N_SLAVES + 1))
 VM_USERNAME=ubuntu
 
 HOME=$(pwd)
@@ -49,16 +55,43 @@ echo "Finished creating VMs, master node: ${MASTER_IP}, worker nodes: ${WORKER_I
 (
     cd ansible || exit
 
-    # Run the playbook
     echo "Installing Hadoop/Spark clusters..."
-    ansible-playbook -i inventory/servers.ini --private-key $HOME/secrets/id_ed25519 playbook.yml
+    ansible-playbook install.yml \
+        -i inventory/servers.ini \
+        --private-key $HOME/secrets/id_ed25519
 )
 
-# # == 3. Run the Spark job
-# (
-#     cd ansible || exit
+# == 3. Run the Spark job
+(
+    echo "Clean old output..."
+    rm -rf /tmp/output || true
 
-#     # Run the playbook
-#     echo "Running Spark job..."
-#     ansible-playbook -i inventory/servers.ini --private-key $HOME/secrets/id_ed25519 spark-job.yml
-# )
+    cd ansible || exit
+
+    echo "Running Spark job..."
+    ansible-playbook spark-job.yml  \
+        -i inventory/servers.ini \
+        --private-key $HOME/secrets/id_ed25519 \
+        -e file_jar_path=$FILE_JAR_PATH \
+        -e file_data_path=$FILE_DATA_PATH \
+        -e jar_class_name=$JOB_CLASS_NAME
+)
+
+# == 4. Stop the VMs
+(
+    cd terraform || exit
+
+    echo "Stopping the VMs..."
+    terraform destroy -auto-approve
+)
+
+ELAPSED_TIME=$(($SECONDS - $START_TIME))
+
+echo ""
+echo "Finished running the Spark job."
+echo " - Number of Slave nodes: $N_SLAVES"
+echo " - JAR file path: $FILE_JAR_PATH"
+echo " - Data file path: $FILE_DATA_PATH"
+echo " - Job class name: $JOB_CLASS_NAME"
+echo " - Output directory: /tmp/output"
+echo " - Time taken: $ELAPSED_TIME seconds"

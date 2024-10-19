@@ -1,5 +1,9 @@
 #!/bin/bash
 
+CURRENT_FILE_PATH=$(realpath "$0")
+CURRENT_DIR=$(dirname "$CURRENT_FILE_PATH")
+RESOURCE_DIR=$(realpath "$CURRENT_DIR/../resources")
+
 DATA_DIR=/data/vm
 
 # == Libvirt/KVM
@@ -29,3 +33,6 @@ sudo usermod -aG kvm `id -un`
 
 sudo mkdir -p $DATA_DIR || true
 sudo chown -R $USER:libvirt $DATA_DIR
+
+# == Download img file
+wget -O $RESOURCE_DIR/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img

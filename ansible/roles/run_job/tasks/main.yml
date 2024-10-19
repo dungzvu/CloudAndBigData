@@ -1,0 +1,38 @@
+---
+- name: Copy file jar to the master
+  copy:
+    src: "{{ file_jar_path }}"
+    dest: /tmp/job.jar
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+
+- name: Copy file data to the master
+  copy:
+    src: "{{ file_data_path }}"
+    dest: /tmp/data.txt
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+
+- name: Copy file to hdfs
+  shell: bash -ilc 'hdfs dfs -mkdir /input || true && hdfs dfs -rm /input/data.txt || true && hdfs dfs -put /tmp/data.txt /input || true'
+
+- name: Remove the output directory
+  shell: bash -ilc 'hdfs dfs -rm /output/* || true && hdfs dfs -rmdir /output || true'
+
+- name: Run the job
+  shell: |
+    bash -ilc 'spark-submit --class {{ jar_class_name }} --master spark://master:7077 /tmp/job.jar'
+  register: spark_output
+- name: Show the spark output
+  debug:
+    msg: "{{ spark_output.stdout }}"
+
+- name: Copy the output to the master machine
+  shell: bash -ilc 'hdfs dfs -get /output /tmp/output || true'
+
+- name: Copy the output to the local machine
+  synchronize:
+    src: "/tmp/output"
+    dest: "/tmp/"
+    mode: pull
+    recursive: yes
