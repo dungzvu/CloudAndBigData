@@ -3,6 +3,11 @@ variable "libvirt_disk_path" {
   default     = "/opt/kvm/pool1"
 }
 
+variable "libvirt_pool_name" {
+  description = "name for libvirt pool"
+  default     = "ubuntu"
+}
+
 variable "ubuntu_img_url" {
   description = "ubuntu 22.04 image"
   default     = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64-disk-kvm.img"

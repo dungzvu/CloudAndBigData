@@ -3,18 +3,28 @@ provider "libvirt" {
 }
 
 resource "libvirt_pool" "ubuntu" {
-  name = "ubuntu"
+  name = var.libvirt_pool_name
   type = "dir"
   path = var.libvirt_disk_path
 }
+
+resource "libvirt_volume" "base-ubuntu-vol" {
+  name = "base-ubuntu.qcow2"
+  pool = libvirt_pool.ubuntu.name
+  source = var.ubuntu_img_url
+  format = "qcow2"
+}
+
+# 10GB disk
+variable "diskBytes" { default = 1024*1024*1024*10 }
 
 resource "libvirt_volume" "bigdata-vm-qcow2" {
   count  = var.instance_count
   name   = "bigdata-vm-qcow2-${count.index}"
   pool   = libvirt_pool.ubuntu.name
-  source = var.ubuntu_img_url
   format = "qcow2"
-  size   = 10240 
+  size   = var.diskBytes
+  base_volume_id = libvirt_volume.base-ubuntu-vol.id
 }
 
 data "template_file" "user_data" {

@@ -1,0 +1,7 @@
+Include /etc/ssh/ssh_config.d/*.conf
+
+Host *
+    StrictHostKeyChecking no
+    UserKnownHostsFile=/dev/null
+    PasswordAuthentication no
+    LogLevel QUIET

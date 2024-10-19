@@ -14,12 +14,18 @@
 
 - name: Unzip all files
   unarchive:
-    src: /home/ubuntu/install/{{ item }}
+    src: /home/ubuntu/install/{{ item | basename }}
     dest: /home/ubuntu/install/
     remote_src: yes
   with_fileglob:
     - "*.tar.gz"
     - "*.tgz"
+
+- name: Render file start.sh
+  template:
+    src: start.sh.j2
+    dest: /home/ubuntu/install/start.sh
+    mode: '0755'
 
 - name: Append environment variables to .bashrc
   lineinfile:

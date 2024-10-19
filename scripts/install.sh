@@ -21,10 +21,11 @@ sudo sed -i 's/#security_driver = "selinux"/security_driver = "none"/' /etc/libv
 sudo systemctl restart libvirtd
 
 # == Ansible
+sudo apt-get install ansible -y
 
 # == Prepare VM envs
 sudo usermod -aG libvirt `id -un`
 sudo usermod -aG kvm `id -un`
 
-mkdir -p $DATA_DIR || true
+sudo mkdir -p $DATA_DIR || true
 sudo chown -R $USER:libvirt $DATA_DIR

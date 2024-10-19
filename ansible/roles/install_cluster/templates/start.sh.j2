@@ -1,6 +1,7 @@
 rm -rf /tmp/hadoop*
-ssh slave1 rm -rf /tmp/hadoop*
-ssh slave2 rm -rf /tmp/hadoop*
+{% for host in groups['workers'] %}
+ssh {{ host }} rm -rf /tmp/hadoop*
+{% endfor %}
 
 hdfs namenode -format
 

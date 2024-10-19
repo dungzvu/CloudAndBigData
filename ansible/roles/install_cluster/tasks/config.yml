@@ -42,47 +42,26 @@
 
 # Update slaves file with the list of slave nodes
 - name: Update slaves file with slave nodes
-  lineinfile:
-    path: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/slaves
-    line: "{{ item }}"
-    state: present
-  loop: "{{ groups['slaves'] }}"
-  # copy:
-  #   dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/slaves
-  #   content: |
-  #     {% for host in groups['workers'] %}
-  #       {{ host }}
-  #     {% endfor %}
-
-# == Config spark cluster
-# Copy slaves.template to slaves
-- name: Copy slaves.template to slaves
   copy:
-    src: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves.template
-    dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves
+    dest: /home/ubuntu/install/hadoop-2.7.1/etc/hadoop/slaves
+    content: |
+      {% for host in groups['workers'] %}
+        {{ host }}
+      {% endfor %}
 
 # Add slave nodes to the slaves file
 - name: Add slave nodes to slaves file
-  lineinfile:
-    path: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves
-    line: "{{ item }}"
-    state: present
-  loop: "{{ groups['slaves'] }}"
-
-# Copy spark-env.sh.template to spark-env.sh
-- name: Copy spark-env.sh.template to spark-env.sh
   copy:
-    src: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh.template
-    dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh
+    dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/slaves
+    content: |
+      {% for host in groups['workers'] %}
+        {{ host }}
+      {% endfor %}
 
 # Add SPARK_MASTER_HOST and JAVA_HOME to spark-env.sh
 - name: Add SPARK_MASTER_HOST and JAVA_HOME to spark-env.sh
-  lineinfile:
-    path: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh
-    line: "{{ item }}"
-    state: present
-  loop:
-    - "export SPARK_MASTER_HOST=master"
-    - "export JAVA_HOME=/home/ubuntu/install/jdk1.8.0_202"  
-  notify:
-    - Restart Spark
+  copy:
+    dest: /home/ubuntu/install/spark-2.4.3-bin-hadoop2.7/conf/spark-env.sh
+    content: |
+      export SPARK_MASTER_HOST=master
+      export JAVA_HOME=/home/ubuntu/install/jdk1.8.0_202  

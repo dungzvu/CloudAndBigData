@@ -2,9 +2,8 @@
 - hosts: all
   gather_facts: yes
   roles:
-    - config_hosts
-    - install_all
-    - config_cluster
+    - common
+    - install_cluster
 
 - hosts: master
   gather_facts: yes

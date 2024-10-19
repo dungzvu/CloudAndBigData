@@ -1,0 +1,25 @@
+---
+- name: Add hosts entries
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item.ansible_host }} {{ item.inventory_hostname }}"
+    state: present
+  with_items: "{{ groups['all'] | map('extract', hostvars) | list }}"
+  become: yes
+
+- name: Update /etc/ssh/ssh_config so no questions asked
+  copy:
+    src: '{{ role_path }}/files/ssh_config'
+    dest: '/etc/ssh/ssh_config'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  become: yes
+
+- name: Copy private key to ~/.ssh/id_rsa
+  copy:
+    src: ../secrets/id_ed25519
+    dest: /home/ubuntu/.ssh/id_rsa
+    owner: '{{ ansible_user }}'
+    group: '{{ ansible_user }}'
+    mode: 0600
